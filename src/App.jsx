@@ -10,7 +10,7 @@ function App() {
   return (
     <div className="min-h-screen"
         style={{
-          backgroundImage: "url('/img/fondo.jpg')",
+          backgroundImage: "url('/img/fondoDos.jpg')",
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundAttachment: "fixed"

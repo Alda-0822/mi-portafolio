@@ -1,16 +1,22 @@
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function Header() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('hero');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Detectar scroll para cambiar tamaño del header
   useEffect(() => {
     const handleScroll = () => {
       const scrollTop = window.scrollY;
       setIsScrolled(scrollTop > 50);
+
+      if (isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -18,42 +24,58 @@ export default function Header() {
   }, []);
 
   // Detectar sección activa automáticamente con Intersection Observer
-  useEffect(() => {
-    const sections = ['hero', 'about', 'technologies', 'projects', 'contact'];
-    const observerOptions = {
-      root: null,
-      rootMargin: '-50% 0px -70% 0px', // Se activa cuando la sección está en el 20% superior
-      threshold: 0.1
-    };
+useEffect(() => {
+  const sections = ['hero', 'about', 'technologies', 'projects', 'certificates', 'contact'];
 
-    const observerCallback = (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          setActiveSection(entry.target.id);
-        }
-      });
-    };
+  const handleScroll = () => {
+    const scrollY = window.scrollY + 100; // Offset del header
+    
+    let currentSection = 'hero'; // Default
 
-    const observer = new IntersectionObserver(observerCallback, observerOptions);
-
-    // Observar todas las secciones
     sections.forEach((sectionId) => {
       const element = document.getElementById(sectionId);
       if (element) {
-        observer.observe(element);
+        const sectionTop = element.offsetTop;
+        const sectionHeight = element.offsetHeight;
+        
+        // Si estamos dentro de esta sección
+        if (scrollY >= sectionTop && scrollY < sectionTop + sectionHeight) {
+          currentSection = sectionId;
+        }
+        // O si pasamos por encima de la sección (para secciones pequeñas)
+        else if (scrollY >= sectionTop) {
+          currentSection = sectionId;
+        }
       }
     });
 
-    // Cleanup
+    setActiveSection(currentSection);
+    console.log('Sección activa:', currentSection, 'Scroll:', scrollY); // Debug
+  };
+
+  // Ejecutar inmediatamente
+  handleScroll();
+  
+  // Ejecutar en cada scroll
+  window.addEventListener('scroll', handleScroll);
+
+  return () => {
+    window.removeEventListener('scroll', handleScroll);
+  };
+}, []);
+
+    // Controlar scroll del body cuando el menú móvil está abierto
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+
     return () => {
-      sections.forEach((sectionId) => {
-        const element = document.getElementById(sectionId);
-        if (element) {
-          observer.unobserve(element);
-        }
-      });
+      document.body.style.overflow = 'unset';
     };
-  }, []);
+  }, [isMobileMenuOpen]);
 
   // Función para scroll suave a secciones
   const scrollToSection = (sectionId) => {
@@ -66,8 +88,16 @@ export default function Header() {
         top: offsetTop,
         behavior: 'smooth'
       });
+
+      // Cerrar menú móvil después de navegar
+      setIsMobileMenuOpen(false);
       // No establecer manualmente activeSection, dejar que Intersection Observer lo maneje
     }
+  };
+
+    // Toggle del menú móvil
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
   };
 
   // Items del menú
@@ -76,10 +106,12 @@ export default function Header() {
     { id: 'about', label: 'Sobre Mí' },
     { id: 'technologies', label: 'Tecnologías' },
     { id: 'projects', label: 'Proyectos' },
+    { id: 'certificates', label: 'Certificados' },
     { id: 'contact', label: 'Contacto' }
   ];
 
   return (
+    <>
     <motion.header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
         isScrolled 
@@ -113,7 +145,7 @@ export default function Header() {
             <h1 className={`font-bold text-white transition-all duration-300 ${
               isScrolled ? 'text-lg' : 'text-xl md:text-2xl'
             }`}>
-              Aldahir Galicia
+              Aldahir Galicia / 26 años
             </h1>
           </motion.div>
 
@@ -145,23 +177,86 @@ export default function Header() {
 
           {/* Botón de menú móvil */}
           <motion.button
-            className="md:hidden p-2 rounded-lg text-white hover:bg-white/10 transition-colors"
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              // Toggle mobile menu (implementar si necesitas)
-              console.log('Toggle mobile menu');
-            }}
-          >
-            <svg className={`transition-all duration-300 ${
-              isScrolled ? 'w-5 h-5' : 'w-6 h-6'
-            }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </motion.button>
+              className="md:hidden p-2 rounded-lg text-white hover:bg-white/10 transition-colors relative z-60"
+              whileTap={{ scale: 0.95 }}
+              onClick={toggleMobileMenu}
+            >
+              <div className={`transition-all duration-300 ${isScrolled ? 'w-5 h-5' : 'w-6 h-6'}`}>
+                {!isMobileMenuOpen ? (
+                  <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                  </svg>
+                ) : (
+                  <svg className="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                )}
+              </div>
+            </motion.button>
+          </div>
         </div>
-      </div>
+      </motion.header>
 
-     
-    </motion.header>
+     {/* Overlay del menú móvil */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Menú móvil desplegable */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div
+            className={`fixed left-0 right-0 z-50 md:hidden bg-black bg-opacity-90 border-b border-gray-700/50 ${
+              isScrolled ? 'top-20' : 'top-24'
+            }`}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          >
+            <div className="px-4 py-6 space-y-2 max-h-[70vh] overflow-y-auto">
+              {menuItems.map((item, index) => (
+                <motion.button
+                  key={item.id}
+                  onClick={() => scrollToSection(item.id)}
+                  className={`block w-full text-left px-6 py-4 rounded-lg transition-all duration-200 ${
+                    activeSection === item.id
+                      ? 'text-blue-400 bg-blue-500/20 border-l-4 border-blue-400'
+                      : 'text-gray-300 hover:text-white hover:bg-white/10'
+                  }`}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-2 h-2 rounded-full transition-all duration-200 ${
+                      activeSection === item.id ? 'bg-blue-400' : 'bg-gray-600'
+                    }`} />
+                    <span className="font-medium text-lg">{item.label}</span>
+                  </div>
+                </motion.button>
+              ))}
+              
+              {/* Información adicional */}
+              <div className="border-t border-gray-700/50 mt-6 pt-6">
+                <div className="px-6 py-2">
+                  <p className="text-gray-400 text-sm">Desarrollador Frontend</p>
+                  <p className="text-blue-400 text-sm font-medium">Aldahir Galicia</p>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>  
   );
 }

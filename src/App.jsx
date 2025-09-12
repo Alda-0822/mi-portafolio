@@ -3,7 +3,9 @@ import Hero from "./sections/Hero.jsx";
 import AboutMe from "./sections/AboutMe.jsx";
 import Carousel from "./sections/Carousel.jsx";
 import Proyectos from "./sections/Projects.jsx";
+import Certificates from "./sections/Certificates.jsx";
 import Contact from "./sections/Contact.jsx";
+
 
 
 function App() {
@@ -27,18 +29,25 @@ function App() {
                 <AboutMe />
             </div>
             </section>
+
             <section id="technologies">
               <Carousel />
             </section>
+
             <section id="projects">
             <div className="bg-white/5 backdrop-blur-sm rounded-lg border border-white/10">
                 <Proyectos />
             </div>
+
             </section>
-          </div>  
+            <section id="certificates">
+              <Certificates />
+            </section>
+            
           <section id="contact">      
             <Contact />      
           </section>
+          </div>
       </div>
     </div>
     
